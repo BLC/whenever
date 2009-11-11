@@ -58,6 +58,12 @@ module Whenever
       options[:class] = Whenever::Job::RakeTask
       command(task, options)
     end
+    
+    def cap(task, options = {})
+      options.reverse_merge!(:environment => @environment, :path => @path)
+      options[:class] = Whenever::Job::CapTask
+      command(task, options)
+    end
   
     def generate_cron_output
       set_path_environment_variable
