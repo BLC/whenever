@@ -270,6 +270,36 @@ class OutputRedirectionTest < Test::Unit::TestCase
       assert_match /^.+ .+ .+ .+ blahblah >> \/dev\/null 2> my_error.log$/, @output
     end
   end
+  
+  context "A command when standard error should be redirected to standard output" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        every 2.hours do
+          command "blahblah", :output => :stdout
+        end
+      file
+    end
+
+    should "output the command with stderr directed to stdout" do
+      assert_match /^.+ .+ .+ .+ blahblah 2>&1$/, @output
+    end
+  end
+  
+  context "A command when standard output should be redirected to standard error" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        every 2.hours do
+          command "blahblah", :output => :stderr
+        end
+      file
+    end
+
+    should "output the command with stdout directed to stderr" do
+      assert_match /^.+ .+ .+ .+ blahblah 1>&2$/, @output
+    end
+  end
 
   context "A command when the deprecated :cron_log is set" do
     setup do

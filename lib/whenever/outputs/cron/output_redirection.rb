@@ -12,6 +12,7 @@ module Whenever
           case @output
             when String   then redirect_from_string
             when Hash     then redirect_from_hash
+            when Symbol   then redirect_from_symbol
             when NilClass then ">> /dev/null 2>&1"
             else ''
           end 
@@ -41,6 +42,13 @@ module Whenever
               ">> #{stdout}"
             else
               ''
+          end
+        end
+        
+        def redirect_from_symbol
+          case @output
+            when :stderr then "1>&2"
+            when :stdout then "2>&1"
           end
         end
 
