@@ -39,9 +39,9 @@ module Whenever
     end
     
     def in_sequence
-      @current_sequence = []
+      @current_sequence = JobSequence.new
       yield
-      @jobs[@current_time_scope] << @current_sequence.dup
+      @jobs[@current_time_scope] << @current_sequence
       @current_sequence = nil
     end
     
@@ -153,11 +153,6 @@ module Whenever
 
       entries.map { |entry| entry.join(' ') }
     end
-    
-    def concatenate_job_sequence(jobs)
-      sequential_task = jobs.map(&:output).join(" && ")
-      Whenever::Job::Default.new(:task => sequential_task)
-    end
 
     def cron_jobs
       return if @jobs.empty?
@@ -167,7 +162,7 @@ module Whenever
       
       @jobs.each do |time, jobs|
         jobs.each do |job|
-          job = concatenate_job_sequence(job) if job.is_a?(Array)
+          job = job.to_single_job if job.is_a?(Whenever::JobSequence)
           
           Whenever::Output::Cron.output(time, job) do |cron|
             cron << "\n\n"
