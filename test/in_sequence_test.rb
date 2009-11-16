@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + "/test_helper")
 
 class InSequenceTest < Test::Unit::TestCase
-  context "A pair of tasks in the same time block that should be executed in sequence" do
+  context "A pair of tasks in the same time block that should be executed in a dependent sequence" do
     setup do
       @output = Whenever.cron \
       <<-file
@@ -17,6 +17,25 @@ class InSequenceTest < Test::Unit::TestCase
     
     should "output the pair of tasks using &&" do
       assert_match 'cd /my/path && RAILS_ENV=production /usr/bin/env cap first_task && cd /my/path && RAILS_ENV=production /usr/bin/env rake second_task', @output
+    end
+  end
+  
+  context "A pair of tasks in the same time block that should be executed in a independent sequence" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :path, '/my/path'
+        every 2.hours do
+          in_sequence(:dependent => false) do
+            cap "first_task"
+            rake "second_task"
+          end
+        end
+      file
+    end
+    
+    should "output the pair of tasks using ;" do
+      assert_match 'cd /my/path && RAILS_ENV=production /usr/bin/env cap first_task; cd /my/path && RAILS_ENV=production /usr/bin/env rake second_task', @output
     end
   end
   

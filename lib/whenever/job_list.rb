@@ -38,8 +38,8 @@ module Whenever
       yield
     end
     
-    def in_sequence
-      @current_sequence = JobSequence.new
+    def in_sequence(options={})
+      @current_sequence = JobSequence.new(options)
       yield
       @jobs[@current_time_scope] << @current_sequence
       @current_sequence = nil
