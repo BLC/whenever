@@ -4,6 +4,7 @@ module Whenever
     def initialize(options)
       @jobs = Hash.new
       @env  = Hash.new
+      @sequences = Hash.new
       
       case options
         when String
@@ -37,14 +38,27 @@ module Whenever
       yield
     end
     
+    def in_sequence
+      @current_sequence = []
+      yield
+      @jobs[@current_time_scope] << @current_sequence.dup
+      @current_sequence = nil
+    end
+    
     def command(task, options = {})
       # :cron_log was an old option for output redirection, it remains for backwards compatibility
       options[:output] = (options[:cron_log] || @cron_log) if defined?(@cron_log) || options.has_key?(:cron_log)
       # :output is the newer, more flexible option.
       options[:output] = @output if defined?(@output) && !options.has_key?(:output)
       options[:class] ||= Whenever::Job::Default
+      
       @jobs[@current_time_scope] ||= []
-      @jobs[@current_time_scope] << options[:class].new(@options.merge(:task => task).merge(options))
+      
+      if @current_sequence
+        @current_sequence << options[:class].new(@options.merge(:task => task).merge(options))
+      else
+        @jobs[@current_time_scope] << options[:class].new(@options.merge(:task => task).merge(options))
+      end
     end
     
     def runner(task, options = {})
@@ -139,6 +153,11 @@ module Whenever
 
       entries.map { |entry| entry.join(' ') }
     end
+    
+    def concatenate_job_sequence(jobs)
+      sequential_task = jobs.map(&:output).join(" && ")
+      Whenever::Job::Default.new(:task => sequential_task)
+    end
 
     def cron_jobs
       return if @jobs.empty?
@@ -148,6 +167,8 @@ module Whenever
       
       @jobs.each do |time, jobs|
         jobs.each do |job|
+          job = concatenate_job_sequence(job) if job.is_a?(Array)
+          
           Whenever::Output::Cron.output(time, job) do |cron|
             cron << "\n\n"
             
