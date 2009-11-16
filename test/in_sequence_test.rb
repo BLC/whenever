@@ -1,6 +1,24 @@
 require File.expand_path(File.dirname(__FILE__) + "/test_helper")
 
 class InSequenceTest < Test::Unit::TestCase
+  context "A single task in a sequence" do
+    setup do
+      @output = Whenever.cron \
+      <<-file
+        set :path, '/my/path'
+        every 1.day, :at => "20:15" do
+          in_sequence do
+            rake "only_task"
+          end
+        end
+      file
+    end
+    
+    should "produce an unaltered task using options from every block" do
+      assert_match '15 20 * * * cd /my/path && RAILS_ENV=production /usr/bin/env rake only_task', @output
+    end
+  end
+  
   context "A pair of tasks in the same time block that should be executed in a dependent sequence" do
     setup do
       @output = Whenever.cron \

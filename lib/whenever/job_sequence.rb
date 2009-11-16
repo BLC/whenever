@@ -5,12 +5,15 @@ module Whenever
     def initialize(options={}, size=0, obj=nil)
       super(size, obj)
       
+      @options = options
       @dependent = options.fetch(:dependent, true)
     end
     
     def to_single_job
       concatenation = @dependent ? " && " : "; "
-      Job::Default.new(:task => map(&:output).join(concatenation))
+      task = map(&:output).join(concatenation)
+
+      Job::Default.new(@options.merge(:task => task))
     end
   end
 end

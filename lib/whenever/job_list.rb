@@ -39,7 +39,7 @@ module Whenever
     end
     
     def in_sequence(options={})
-      @current_sequence = JobSequence.new(options)
+      @current_sequence = JobSequence.new(@options.merge(options))
       yield
       @jobs[@current_time_scope] << @current_sequence
       @current_sequence = nil
