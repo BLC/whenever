@@ -6,7 +6,7 @@ require 'lib/whenever/version.rb'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name        = "whenever"
+    gemspec.name        = "moneypools-whenever"
     gemspec.version     = Whenever::VERSION
     gemspec.summary     = "Clean ruby syntax for defining and deploying messy cron jobs."
     gemspec.description = "Clean ruby syntax for defining and deploying messy cron jobs."
